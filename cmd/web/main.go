@@ -2,6 +2,7 @@ package main
 
 import (
 	"chatross-api/internal/config"
+	"chatross-api/internal/delivery/websockets"
 	"fmt"
 	"log"
 	"os"
@@ -20,12 +21,15 @@ func main(){
 	db := config.NewDatabase()
 	validate := validator.New()
 	app := gin.New()
+	hub := websockets.NewHub()
 
+	go hub.Run()
 
 	config.Boostrap(&config.BoostrapConfig{
 		App: app,
 		Validate: validate,
 		DB: db,
+		Hub: hub,
 	})
 
 	err := app.Run(fmt.Sprintf(":%s", os.Getenv("WEB_PORT")))

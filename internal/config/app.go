@@ -4,6 +4,7 @@ import (
 	"chatross-api/internal/delivery/http/controller"
 	"chatross-api/internal/delivery/http/middleware"
 	"chatross-api/internal/delivery/http/route"
+	"chatross-api/internal/delivery/websockets"
 	"chatross-api/internal/repository"
 	"chatross-api/internal/usecase"
 
@@ -16,16 +17,19 @@ type BoostrapConfig struct {
 	DB 			*gorm.DB
 	App			*gin.Engine
 	Validate 	*validator.Validate
+	Hub 		*websockets.Hub
 }
 func Boostrap(config *BoostrapConfig) {
 	// Setup Repository
 	userRepository := repository.NewUserRepository()
 
 	// Setup UseCase
-	userUseCase := usecase.NewUserUseCase(config.DB, userRepository, config.Validate)
+	userUseCase := usecase.NewUserUsecase(config.DB, userRepository, config.Validate)
 
 	// Setup Controller
 	authController := controller.NewAuthController(userUseCase)
+	websocketController := controller.NewWsController(config.Hub)
+
 
 	// Setup Middleware
 	authMiddleware := middleware.NewAuth(userUseCase)
@@ -35,6 +39,8 @@ func Boostrap(config *BoostrapConfig) {
 		App: config.App,
 		AuthController: authController,
 		AuthMiddleware: authMiddleware,
+		WebsocketHandler:  websocketController,
+		Hub: config.Hub,
 	}
 	router.Setup()
 

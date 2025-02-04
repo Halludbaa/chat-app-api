@@ -4,12 +4,11 @@ import (
 	"chatross-api/internal/helper"
 	rerror "chatross-api/internal/helper/error"
 	"chatross-api/internal/usecase"
-	"fmt"
 
 	"github.com/gin-gonic/gin"
 )
 
-func NewAuth(userUseCase *usecase.UserUseCase) gin.HandlerFunc {
+func NewAuth(userUseCase *usecase.UserUsecase) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		token := ctx.GetHeader("Authorization")
 
@@ -32,7 +31,6 @@ func NewAuth(userUseCase *usecase.UserUseCase) gin.HandlerFunc {
 			ctx.Abort()
 			return
 		}
-		fmt.Println(auth)
 
 		ctx.Set("auth", auth)
 		ctx.Next()

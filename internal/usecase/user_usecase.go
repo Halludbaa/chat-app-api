@@ -15,21 +15,21 @@ import (
 	"gorm.io/gorm"
 )
 
-type UserUseCase struct {
+type UserUsecase struct {
 	DB	*gorm.DB
 	UserRepository *repository.UserRepository
 	Validate *validator.Validate
 }
 
-func NewUserUseCase(db *gorm.DB, userRepository *repository.UserRepository, validate *validator.Validate) *UserUseCase{
-	return &UserUseCase{
+func NewUserUsecase(db *gorm.DB, userRepository *repository.UserRepository, validate *validator.Validate) *UserUsecase{
+	return &UserUsecase{
 		DB: db,
 		Validate: validate,
 		UserRepository: userRepository,
 	}
 }
 
-func (uu *UserUseCase) Refresh(ctx context.Context, request *model.TokenRequest) (*model.TokenResponse, error){
+func (uu *UserUsecase) Refresh(ctx context.Context, request *model.TokenRequest) (*model.TokenResponse, error){
 	
 	if err := uu.Validate.Struct(request); err != nil {
 		return nil, rerror.ErrBadReq
@@ -53,7 +53,7 @@ func (uu *UserUseCase) Refresh(ctx context.Context, request *model.TokenRequest)
 
 }
 
-func (c *UserUseCase) Create(ctx context.Context, request *model.RegisterUserRequest ) (*model.UserResponse, error) {
+func (c *UserUsecase) Create(ctx context.Context, request *model.RegisterUserRequest ) (*model.UserResponse, error) {
 	tx := c.DB.WithContext(ctx).Begin()
 	defer tx.Rollback()
 
@@ -93,7 +93,7 @@ func (c *UserUseCase) Create(ctx context.Context, request *model.RegisterUserReq
 	return converter.UserToResponse(newUser), nil
 }
 
-func (c *UserUseCase) Login(ctx context.Context, request *model.LoginUserRequest) (*model.TokenResponse, error) {
+func (c *UserUsecase) Login(ctx context.Context, request *model.LoginUserRequest) (*model.TokenResponse, error) {
 	tx := c.DB.WithContext(ctx).Begin()
 	defer tx.Rollback()
 
@@ -133,7 +133,7 @@ func (c *UserUseCase) Login(ctx context.Context, request *model.LoginUserRequest
 	return token, nil
 }
 
-func (c *UserUseCase) Verify(ctx context.Context, id int64) (*entity.User, error) {
+func (c *UserUsecase) Verify(ctx context.Context, id int64) (*entity.User, error) {
 	tx := c.DB.WithContext(ctx).Begin()
 	defer tx.Rollback()
 	

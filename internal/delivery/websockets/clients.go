@@ -6,6 +6,10 @@ import (
 
 	"github.com/gorilla/websocket"
 )
+type ClientContract interface {
+	ReadMessage()
+	WriteMessage()
+}
 
 type Client struct {
 	ID string

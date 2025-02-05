@@ -77,8 +77,8 @@ func (c *UserUsecase) Create(ctx context.Context, request *model.RegisterUserReq
 	}
 
 	newUser := &entity.User{
+		ID: request.Username,
 		Email: request.Email,
-		Name: request.Name,
 		Password: string(password),
 	}
 
@@ -102,7 +102,7 @@ func (c *UserUsecase) Login(ctx context.Context, request *model.LoginUserRequest
 	}
 	
 	user := new(entity.User)
-	if err := c.UserRepository.FindByEmail(tx, user, request.Email); err != nil {
+	if err := c.UserRepository.FindById(tx, user, request.Username); err != nil {
 		return nil, rerror.ErrNotFound
 	}
 	
@@ -133,7 +133,7 @@ func (c *UserUsecase) Login(ctx context.Context, request *model.LoginUserRequest
 	return token, nil
 }
 
-func (c *UserUsecase) Verify(ctx context.Context, id int64) (*entity.User, error) {
+func (c *UserUsecase) Verify(ctx context.Context, id string) (*entity.User, error) {
 	tx := c.DB.WithContext(ctx).Begin()
 	defer tx.Rollback()
 	

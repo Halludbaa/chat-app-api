@@ -5,7 +5,6 @@ import (
 	"chatross-api/internal/entity"
 	rerror "chatross-api/internal/helper/error"
 	"chatross-api/internal/model"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -25,9 +24,9 @@ func(c *WsController) Connect(ctx *gin.Context) {
 	if !exist {
 		ctx.JSON(401, rerror.ErrUnauthorized)
 	}
-	userID := user.(*entity.User).ID
+	userIDstr := user.(*entity.User).ID
 
-	userIDstr := strconv.Itoa(int(userID))
+	// userIDstr := strconv.Itoa((userID))
 
 	websockets.ServeWS(c.Hub, ctx, &userIDstr)
 }

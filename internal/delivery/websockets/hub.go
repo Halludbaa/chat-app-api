@@ -16,7 +16,7 @@ type Hub struct {
 
 func NewHub() *Hub {
 	return &Hub{
-		broadcast: make(chan *wsmodel.Message, 0),
+		broadcast: make(chan *wsmodel.Message),
 		Clients: make(map[string]*Client),
 		register: make(chan *Client),
 		unregister: make(chan *Client),

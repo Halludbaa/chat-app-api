@@ -14,11 +14,11 @@ var (
 ) 
 
 type JWTClaims struct {
-	UserID int64 `json:"user_id"`
+	UserID string `json:"user_id"`
 	jwt.RegisteredClaims
 }
 
-func GenerateAccessToken(userID int64) (string, error) {
+func GenerateAccessToken(userID string) (string, error) {
 	claims := JWTClaims{
 		UserID: userID,
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -31,7 +31,7 @@ func GenerateAccessToken(userID int64) (string, error) {
 	return token.SignedString(access_key)
 }
 
-func GenerateRefreshToken(userID int64) (string, error) {
+func GenerateRefreshToken(userID string) (string, error) {
 	claims := JWTClaims{
 		UserID: userID,
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -44,7 +44,7 @@ func GenerateRefreshToken(userID int64) (string, error) {
 	return token.SignedString(refresh_key)
 }
 
-func ValidateAccessToken(tokenString string) (int64, error) {
+func ValidateAccessToken(tokenString string) (string, error) {
 	
 	claims := new(JWTClaims)
 	token, err := jwt.ParseWithClaims(tokenString, claims, func (token *jwt.Token) (interface{}, error) {
@@ -52,19 +52,19 @@ func ValidateAccessToken(tokenString string) (int64, error) {
 	})
 
 	if err != nil {
-		return 0, rerror.ErrUnauthorized
+		return "", rerror.ErrUnauthorized
 	}
 
 
 	if !token.Valid {
-		return 0, rerror.ErrUnauthorized
+		return "", rerror.ErrUnauthorized
 	}
 
 	
 	return claims.UserID, nil
 }
 
-func ValidateRefreshToken(tokenString string) (int64, error) {
+func ValidateRefreshToken(tokenString string) (string, error) {
 	claims := new(JWTClaims)
 	token, err := jwt.ParseWithClaims(tokenString, claims, func (token *jwt.Token) (interface{}, error) {
 		return refresh_key, nil
@@ -72,15 +72,15 @@ func ValidateRefreshToken(tokenString string) (int64, error) {
 
 	if err != nil {
 		if err == jwt.ErrSignatureInvalid {
-			return 0, rerror.ErrUnauthorized
+			return "", rerror.ErrUnauthorized
 		}
 		
-		return 0, rerror.ErrInternalServer
+		return "", rerror.ErrInternalServer
 	}
 
 
 	if !token.Valid {
-		return 0, rerror.ErrUnauthorized
+		return "", rerror.ErrUnauthorized
 	}
 	
 	// if time.Unix(claims.ExpiresAt, 0).Sub(time.Now()) > 30 * time.Second {

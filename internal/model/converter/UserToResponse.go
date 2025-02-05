@@ -7,8 +7,7 @@ import (
 
 func UserToResponse(user *entity.User) *model.UserResponse{
 	return &model.UserResponse{
-		ID: user.ID,
-		Name: user.Name,
+		Username: user.ID,
 		Email: user.Email,
 		CreateAt: user.CreatedAt,
 		UpdateAt: user.UpdatedAt,

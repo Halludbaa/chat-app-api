@@ -18,11 +18,11 @@ func init(){
 
 
 func main(){
+	gin.SetMode(gin.ReleaseMode)
 	db := config.NewDatabase()
 	validate := validator.New()
 	app := gin.New()
 	hub := websockets.NewHub()
-
 	go hub.Run()
 
 	config.Boostrap(&config.BoostrapConfig{

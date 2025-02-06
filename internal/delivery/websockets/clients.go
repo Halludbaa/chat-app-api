@@ -13,37 +13,50 @@ type ClientContract interface {
 
 type Client struct {
 	ID string
-	Conn *websocket.Conn
+	Conn []*websocket.Conn
 	Send chan *wsmodel.Message
 	Hub *Hub
 }
 
+func NewClient(client *Client) ClientContract{
+	return client
+}
+
 func (c *Client) ReadMessage() {
 	defer func() {
-		c.Conn.Close()
+		for _, conn := range c.Conn {
+			conn.Close()
+		}
 		c.Hub.unregister <- c
 	}()
 
-	for {
+	
+	for { for _, conn := range c.Conn {
 		msg := new(wsmodel.Message)
-		if err := c.Conn.ReadJSON(msg); err != nil {
+		if err := conn.ReadJSON(msg); err != nil {
 			log.Println("Read Error: ", err)
 			break
 		}
 
-		log.Println("Read Success: ", msg.Content)
-
+		log.Printf("Read Success: From %s To %s , Message: %s \n", msg.From, msg.To, msg.Content)
 		c.Hub.broadcast <- msg
-	}
+
+	}}
 }
 
 func (c *Client) WriteMessage() {
-	defer c.Conn.Close()
+	defer func() {
+		for _, conn := range c.Conn {
+			conn.Close()
+		}
+	}()
 	for msg := range c.Send {
-		err := c.Conn.WriteJSON(msg)
-		if err != nil {
-			log.Println("Write Error: ", err)
-			break
+		for _, conn := range c.Conn {
+			err := conn.WriteJSON(msg)
+			if err != nil {
+				log.Println("Write Error: ", err)
+				break
+			}
 		}
 	}
 }

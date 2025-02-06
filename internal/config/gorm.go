@@ -24,7 +24,7 @@ func NewDatabase() *gorm.DB{
 	if err != nil {
 		panic("Can Connect To Database!")
 	}
-	db.AutoMigrate(&entity.User{})
+	db.AutoMigrate(&entity.User{}, &entity.Chat{}, &entity.Message{})
 	
 	return db
 }

@@ -8,6 +8,7 @@ import (
 	"chatross-api/internal/model/converter"
 	"chatross-api/internal/repository"
 	"context"
+	"log"
 
 	"golang.org/x/crypto/bcrypt"
 
@@ -62,17 +63,22 @@ func (c *UserUsecase) Create(ctx context.Context, request *model.RegisterUserReq
 		return nil, rerror.ErrBadReq // Bad Request
 	}
 
-	total, err := c.UserRepository.CountByEmail(tx, request.Email)
+	total, err := c.UserRepository.CountById(tx, request.Username)
 	if err != nil {
+		log.Println("Database")
+
 		return nil, rerror.ErrInternalServer // Internal Server Error
 	}
 
 	if total > 0 {
+		log.Println("Same ID was Created")
+
 		return nil, rerror.ErrConflict // Error Conflict
 	}
 
 	password, err := bcrypt.GenerateFromPassword([]byte(request.Password), bcrypt.DefaultCost)
 	if err != nil {
+		log.Println("Failed Generate Password")
 		return nil, rerror.ErrInternalServer// Internal Server Error
 	}
 

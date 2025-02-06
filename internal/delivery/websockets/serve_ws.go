@@ -25,7 +25,9 @@ func ServeWS(hub *Hub, ctx *gin.Context, userID *string){
 
 	client := &Client{
 		ID: *userID,
-		Conn: conn,
+		Conn: []*websocket.Conn{
+			conn,
+		},
 		Send: make(chan *wsmodel.Message),
 		Hub: hub,
 	}

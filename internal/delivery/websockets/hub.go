@@ -28,6 +28,12 @@ func (hub *Hub) Run() {
 		select {
 		case client := <-hub.register:
 			hub.mu.Lock()
+			if main, exist := hub.Clients[client.ID]; exist {
+				main.Conn = append(main.Conn, client.Conn[0])
+
+				hub.mu.Unlock()
+				continue
+			}
 			hub.Clients[client.ID] = client
 			hub.mu.Unlock()
 

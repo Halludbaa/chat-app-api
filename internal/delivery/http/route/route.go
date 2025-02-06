@@ -25,9 +25,7 @@ func (c *RouteConfig) Setup(){
 }
 
 func (c *RouteConfig) SetupMiddleware() {
-	c.App.Use(middleware.CORSMiddleware())
-	c.App.Use(gin.Recovery())
-	c.App.Use(gin.Logger())
+	c.App.Use(gin.Recovery(), gin.Logger(), middleware.CORSMiddleware())
 }
 
 func (c *RouteConfig) SetupWebsocket() {

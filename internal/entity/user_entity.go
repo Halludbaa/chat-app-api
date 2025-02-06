@@ -10,4 +10,6 @@ type User struct {
 	CreatedAt 	int64   `gorm:"column:created_at;autoCreateTime:milli"`
 	UpdatedAt 	int64   `gorm:"column:updated_at;autoCreateTime:milli;autoUpdateTime:milli"`
 	Password  	string 	`gorm:"column:password"`
+	Chat 		[]Chat 	`gorm:"many2many:user_chat"`
 }
+

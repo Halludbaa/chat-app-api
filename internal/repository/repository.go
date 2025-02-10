@@ -1,6 +1,8 @@
 package repository
 
-import "gorm.io/gorm"
+import (
+	"gorm.io/gorm"
+)
 
 type Repository[T any] struct {
 	DB *gorm.DB
@@ -19,7 +21,7 @@ func (r *Repository[T]) Delete(db *gorm.DB, entity *T) error {
 }
 
 func (r *Repository[T]) CountById(db *gorm.DB, id any) (int64, error) {
-	var total int64
+	var total int64 
 	err := db.Model(new(T)).Where("id = ?", id).Count(&total).Error
 	return total, err
 }

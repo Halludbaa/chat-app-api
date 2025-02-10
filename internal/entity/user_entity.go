@@ -1,9 +1,6 @@
 package entity
 
-import "gorm.io/gorm"
-
 type User struct {
-	gorm.Model
 	// ID 			int64 	`gorm:"primarykey;auto_increment:true;index"`
 	ID 			string	`gorm:"column:id;primarykey;index"`
 	Email     	string  `gorm:"column:email"`

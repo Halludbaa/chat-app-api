@@ -23,6 +23,12 @@ func ServeWS(hub *Hub, ctx *gin.Context, userID *string){
 		return
 	}
 
+	if client, exist := hub.Clients[*userID]; exist {
+		client.Conn = append(client.Conn, conn)
+		go client.ReadMessage(conn)
+		return
+	}
+
 	client := &Client{
 		ID: *userID,
 		Conn: []*websocket.Conn{
@@ -34,6 +40,6 @@ func ServeWS(hub *Hub, ctx *gin.Context, userID *string){
 
 	hub.register <- client
 
-	go client.ReadMessage()
+	go client.ReadMessage(conn)
 	go client.WriteMessage()
 } 

@@ -5,6 +5,7 @@ import (
 	"chatross-api/internal/entity"
 	rerror "chatross-api/internal/helper/error"
 	"chatross-api/internal/model"
+	"log"
 
 	"github.com/gin-gonic/gin"
 )
@@ -32,12 +33,12 @@ func(c *WsController) Connect(ctx *gin.Context) {
 }
 
 func (c *WsController) GetClient(ctx *gin.Context) {
-	data := make([]string, 0, len(c.Hub.Clients))
-	for key := range c.Hub.Clients{
-		data = append(data, key)
+	data := make(map[string]int)
+	for key, val := range c.Hub.Clients{
+		data[key] = len(val.Conn)
+		log.Println(key, ": ", val.Conn)
 	}
-
-	ctx.JSON(200, model.WebResponse[any]{
+	ctx.JSON(200, model.WebResponse[map[string]int]{
 		Status: 200,
 		Data: data,
 	})

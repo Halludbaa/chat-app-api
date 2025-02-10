@@ -69,7 +69,7 @@ func (c *UserUsecase) Create(ctx context.Context, request *model.RegisterUserReq
 
 		return nil, rerror.ErrInternalServer // Internal Server Error
 	}
-
+	log.Printf("User Count: %d", total)
 	if total > 0 {
 		log.Println("Same ID was Created")
 

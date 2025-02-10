@@ -3,6 +3,7 @@ package test
 import (
 	"chatross-api/internal/model"
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -12,21 +13,25 @@ import (
 
 func TestPing(t *testing.T){
 	w := httptest.NewRecorder()
-	
-	exampleResponse := model.WebResponse[string]{
+
+	request, err := http.NewRequest("GET", "/ping", nil)
+	assert.Nil(t, err)
+
+	expectResponse := model.WebResponse[string]{
 		Status: 200,
 		Data: "pong",
 	}
 
-	resJson, err := json.Marshal(exampleResponse)
+	app.ServeHTTP(w, request)
+
+	bytes, err := io.ReadAll(w.Body)
 	assert.Nil(t, err)
 
-	req, err := http.NewRequest("GET", "/ping", nil)
+	responseBody := new(model.WebResponse[string])
+	err = json.Unmarshal(bytes, responseBody)
 	assert.Nil(t, err)
-
-	app.ServeHTTP(w, req)
-
 	
-	assert.Equal(t, 200, w.Code)
-	assert.Equal(t, string(resJson), w.Body.String())
+	assert.Equal(t, expectResponse.Status, responseBody.Status)
+	assert.Equal(t, expectResponse.Data, responseBody.Data)
 }
+

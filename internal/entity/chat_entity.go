@@ -1,9 +1,6 @@
 package entity
 
-import "gorm.io/gorm"
-
 type Chat struct {
-	gorm.Model
 	ID 			int64 	`gorm:"column:id;primarykey;autoincrement:true;index"`
 	Name 		string 	`gorm:"column:name;default:null"`
 	Type		string  `gorm:"column:type;constraint:check:(type in ('private', 'group'))"`

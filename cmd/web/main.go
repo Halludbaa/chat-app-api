@@ -20,7 +20,7 @@ func main(){
 	db := config.NewDatabase()
 	validate := validator.New()
 	log := config.NewLogger()
-	hub := websockets.NewHub()
+	hub := websockets.NewHub(log)
 	go hub.Run()
 	defer log.Fatal("App Was Stopped!")
 

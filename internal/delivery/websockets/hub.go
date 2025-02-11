@@ -2,11 +2,14 @@ package websockets
 
 import (
 	wsmodel "chatross-api/internal/model/wsmodel"
+	"chatross-api/internal/usecase"
+	"context"
 	"log"
 	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/sirupsen/logrus"
 )
 
 type HubFunc interface{
@@ -15,22 +18,31 @@ type HubFunc interface{
 	PingPong(conn *websocket.Conn, client *Client)
 }
 
+type UseCaseList struct {
+	ChatUsecase 	*usecase.ChatUsecase
+	MessageUsecase 	*usecase.MessageUsecase
+}
+
 type Hub struct {
 	HubFunc
-	Clients map[string]*Client
-	register chan *Client
-	unregister chan *Client
-	broadcast chan *wsmodel.Message
+	log 		*logrus.Logger
+	uc			*UseCaseList
+	Clients 	map[string]*Client
+	register 	chan *Client
+	unregister 	chan *Client
+	broadcast 	chan *wsmodel.Message
 	mu 			sync.Mutex
 }
 
 
-func NewHub() *Hub {
+func NewHub(log *logrus.Logger, uc *UseCaseList) *Hub {
 	return &Hub{
+		uc: uc,
 		broadcast: make(chan *wsmodel.Message),
 		Clients: make(map[string]*Client),
 		register: make(chan *Client),
 		unregister: make(chan *Client),
+		log: log,
 	}
 }
 
@@ -47,6 +59,7 @@ func (hub *Hub) Run() {
 			delete(hub.Clients, client.ID)
 			hub.mu.Unlock()
 		case msg := <-hub.broadcast:
+			hub.StoreMessage(msg)
 			hub.SendMessage(msg)
 		}
 	}
@@ -91,4 +104,24 @@ func (hub *Hub) SendMessage(msg *wsmodel.Message) {
 	recipient.Send <- msg
 
 	
+}
+
+func (hub *Hub) StoreMessage(msg *wsmodel.Message) {
+	hub.log.Debug("Stored")
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	if msg.ChatID == 0 {
+		// Call NewChat Usecase of Chat
+		// Return newChat{ID}
+		hub.uc.ChatUsecase.NewChat(ctx, msg)
+		
+		
+		
+		// msg.ChatID = newChat.ID
+		hub.log.Debug("No Chat Exist!")
+	}
+	
+	// Call Store Usecase of Messages
+	hub.uc.MessageUsecase.Store(ctx, msg)
 }

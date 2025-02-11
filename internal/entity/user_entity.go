@@ -1,7 +1,6 @@
 package entity
 
 type User struct {
-	// ID 			int64 	`gorm:"primarykey;auto_increment:true;index"`
 	ID 			string	`gorm:"column:id;primarykey;index"`
 	Email     	string  `gorm:"column:email"`
 	CreatedAt 	int64   `gorm:"column:created_at;autoCreateTime:milli"`

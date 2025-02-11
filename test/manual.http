@@ -1,0 +1,4 @@
+@url = "http://192.168.245.4:8080"
+
+### GET Ping
+GET {{url}}/ping

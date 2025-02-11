@@ -4,10 +4,8 @@ import (
 	"chatross-api/internal/config"
 	"chatross-api/internal/delivery/websockets"
 	"fmt"
-	"log"
 	"os"
 
-	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 )
 
@@ -18,25 +16,28 @@ func init(){
 
 
 func main(){
-	gin.SetMode(gin.ReleaseMode)
+	app := config.NewGin()
 	db := config.NewDatabase()
 	validate := validator.New()
-	app := gin.New()
+	log := config.NewLogger()
 	hub := websockets.NewHub()
 	go hub.Run()
+	defer log.Fatal("App Was Stopped!")
 
+	log.Info("App Is Running!")
 	config.Boostrap(&config.BoostrapConfig{
 		App: app,
 		Validate: validate,
 		DB: db,
+		Log: log,
 		Hub: hub,
 	})
-
+	
 	err := app.Run(fmt.Sprintf(":%s", os.Getenv("WEB_PORT")))
 	if err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
-
+	
 
 
 }

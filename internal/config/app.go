@@ -10,12 +10,14 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
 type BoostrapConfig struct {
 	DB 			*gorm.DB
 	App			*gin.Engine
+	Log			*logrus.Logger
 	Validate 	*validator.Validate
 	Hub 		*websockets.Hub
 }
@@ -24,7 +26,7 @@ func Boostrap(config *BoostrapConfig) {
 	userRepository := repository.NewUserRepository()
 
 	// Setup UseCase
-	userUseCase := usecase.NewUserUsecase(config.DB, userRepository, config.Validate)
+	userUseCase := usecase.NewUserUsecase(config.DB, userRepository, config.Validate, config.Log)
 
 	// Setup Controller
 	authController := controller.NewAuthController(userUseCase)

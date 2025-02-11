@@ -1,7 +1,7 @@
 package websockets
 
 import (
-	wsmodel "chatross-api/internal/model/ws_model"
+	wsmodel "chatross-api/internal/model/wsmodel"
 	"log"
 	"net/http"
 

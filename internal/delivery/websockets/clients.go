@@ -1,7 +1,7 @@
 package websockets
 
 import (
-	wsmodel "chatross-api/internal/model/ws_model"
+	wsmodel "chatross-api/internal/model/wsmodel"
 	"log"
 	"slices"
 
@@ -39,6 +39,9 @@ func (c *Client) ReadMessage(conn *websocket.Conn) {
 			
 			break
 		}
+		if msg.From == c.ID {
+			log.Println("From: ", msg.From)
+		}
 		log.Printf("Read Success: From %s To %s , Message: %s \n", msg.From, msg.To, msg.Content)
 		c.Hub.broadcast <- msg
 	}
@@ -60,6 +63,7 @@ func (c *Client) WriteMessage() {
 			log.Printf("connection: %d", num )
 			break
 		}
+
 		for _, conn := range c.Conn {
 			err := conn.WriteJSON(msg)
 			if err != nil {

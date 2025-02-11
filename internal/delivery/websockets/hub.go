@@ -1,7 +1,7 @@
 package websockets
 
 import (
-	wsmodel "chatross-api/internal/model/ws_model"
+	wsmodel "chatross-api/internal/model/wsmodel"
 	"log"
 	"sync"
 	"time"
@@ -75,6 +75,13 @@ func (hub *Hub) PingPong(conn *websocket.Conn, client *Client) {
 func (hub *Hub) SendMessage(msg *wsmodel.Message) {
 	hub.mu.Lock()
 	defer hub.mu.Unlock()
+	
+	sender, exist := hub.Clients[msg.From]
+	if !exist {
+		return
+	}
+
+	sender.Send <- msg
 
 	recipient, exist := hub.Clients[msg.To]
 	if !exist {
@@ -82,4 +89,6 @@ func (hub *Hub) SendMessage(msg *wsmodel.Message) {
 	}
 	
 	recipient.Send <- msg
+
+	
 }

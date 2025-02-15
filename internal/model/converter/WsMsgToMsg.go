@@ -13,3 +13,12 @@ func WsMsgToMsg(msg *wsmodel.Message) *entity.Message {
 		Content: msg.Content,
 	}
 }
+
+func MsgToWsMsg(msg *entity.Message) *wsmodel.Message {
+	return &wsmodel.Message{
+		ChatID: msg.ChatID,
+		From: msg.From,
+		To: msg.To,
+		Content: msg.Content,
+	}
+}

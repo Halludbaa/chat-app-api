@@ -3,3 +3,7 @@ DROP TABLE chats CASCADE;
 DROP TABLE messages CASCADE;
 
 DROP TABLE user_chat CASCADE;
+
+
+SELECT * FROM messages
+ORDER BY created_at ASC;

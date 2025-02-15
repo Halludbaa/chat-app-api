@@ -24,23 +24,35 @@ type BoostrapConfig struct {
 func Boostrap(config *BoostrapConfig) {
 	// Setup Repository
 	userRepository := repository.NewUserRepository()
+	messageRepository := repository.NewMessageRepository()
+	chatRepository := repository.NewChatRepository()
+
 
 	// Setup UseCase
 	userUseCase := usecase.NewUserUsecase(config.DB, userRepository, config.Validate, config.Log)
+	messageUseCase := usecase.NewMessageUsecase(config.DB, messageRepository, config.Validate, config.Log)
+	chatUseCase := usecase.NewChatUsecase(config.DB, chatRepository, config.Validate, config.Log)
+
 
 	// Setup Controller
 	authController := controller.NewAuthController(userUseCase)
 	websocketController := controller.NewWsController(config.Hub)
-
+	chatController := controller.NewChatController(chatUseCase)
+	userController := controller.NewUserController(userUseCase)
 
 	// Setup Middleware
 	authMiddleware := middleware.NewAuth(userUseCase)
-
+	config.Hub.UC = &websockets.UseCaseList{
+		MessageUsecase: messageUseCase,
+		ChatUsecase: chatUseCase,
+	}
 	
 	router := route.RouteConfig{
 		App: config.App,
 		AuthController: authController,
 		AuthMiddleware: authMiddleware,
+		ChatController: chatController,
+		UserController: userController,
 		WebsocketHandler:  websocketController,
 		Hub: config.Hub,
 	}

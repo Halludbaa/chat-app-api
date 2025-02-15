@@ -3,6 +3,7 @@ package usecase
 import (
 	"chatross-api/internal/entity"
 	rerror "chatross-api/internal/helper/error"
+	"chatross-api/internal/model/converter"
 	"chatross-api/internal/model/wsmodel"
 	"chatross-api/internal/repository"
 	"context"
@@ -20,11 +21,16 @@ type MessageUsecase struct {
 
 }
 
-func NewMessageUsecase() *MessageUsecase {
-	return &MessageUsecase{}
+func NewMessageUsecase(db *gorm.DB, msgRepository *repository.MessageRepository, validate *validator.Validate, log *logrus.Logger) *MessageUsecase {
+	return &MessageUsecase{
+		DB: db,
+		Log: log,
+		MessageRepository: msgRepository,
+		Validate: validate,
+	}
 }
 
-func (u *MessageUsecase) Store(ctx context.Context, request *wsmodel.Message) error {
+func (u *MessageUsecase) Store(ctx context.Context, request *wsmodel.Message) (*wsmodel.Message, error) {
 	tx := u.DB.WithContext(ctx).Begin()
 	defer tx.Rollback()
 
@@ -37,13 +43,13 @@ func (u *MessageUsecase) Store(ctx context.Context, request *wsmodel.Message) er
 
 	if err := u.MessageRepository.Create(tx, newUser); err != nil {
 		u.Log.Error("Failed To Add User")
-		return rerror.ErrInternalServer
+		return nil, rerror.ErrInternalServer
 	}
 
 	if err := tx.Commit().Error; err != nil {
 		u.Log.Error("Failed Session Commit")
-		return rerror.ErrInternalServer
+		return nil, rerror.ErrInternalServer
 	}
 
-	return nil
+	return converter.MsgToWsMsg(newUser), nil
 }

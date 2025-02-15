@@ -13,42 +13,99 @@ import (
 	"gorm.io/gorm"
 )
 
+type Chat interface {
+	NewChat(ctx context.Context, request *wsmodel.Message) (int64, error)
+	GetAllChatFromUser(ctx context.Context, request *model.ChatRequest)
+}
 
 type ChatUsecase struct {
-	DB				*gorm.DB
-	Log 			*logrus.Logger
-	ChatRepository 	*repository.ChatRepository
-	Validate 		*validator.Validate
+	db				*gorm.DB
+	log 			*logrus.Logger
+	chatRepository 	*repository.ChatRepository
+	validate 		*validator.Validate
 }
 
-func (c *ChatUsecase) GetAllChatFromUser(ctx context.Context, request *model.ChatRequest) {
-	tx := c.DB.WithContext(ctx).Begin()
-	defer tx.Rollback()
+func NewChatUsecase(db *gorm.DB, chatRepository *repository.ChatRepository, validate *validator.Validate, log *logrus.Logger) *ChatUsecase {
+	return &ChatUsecase{
+		db: db,
+		log: log,
+		chatRepository: chatRepository,
+		validate: validate,
+	}
 }
 
-func (c *ChatUsecase) NewChat(ctx context.Context, request *wsmodel.Message) (int64, error) {
-	tx := c.DB.WithContext(ctx).Begin()
+func (c *ChatUsecase) GetChatwithMessage(ctx context.Context, chatID int64) (*entity.Chat, error) {
+	tx := c.db.WithContext(ctx).Begin()
 	defer tx.Rollback()
 
-	newUser := &entity.Chat{
-		Name: "",
-		Type: "private",
-		User: []entity.User{
-			{ID: request.To},
-			{ID: request.From},
-		},
+	chat := new(entity.Chat)
+	if err := c.chatRepository.GetChatWithMessage(tx, chat, chatID); err != nil {
+		c.log.WithField("error", err).Error("Failure in Database!")
+		return nil, rerror.ErrNotFound
+	}
+	
+	// make simple handler if the requester is not the chat member
+
+	
+	if err := tx.Commit().Error; err != nil {
+		c.log.WithError(err).Error("Failed Session Commit")
+		return nil, rerror.ErrInternalServer
 	}
 
-	if err := c.ChatRepository.Create(tx, newUser); err != nil {
-		c.Log.Error("Failed To Add User")
+	return chat, nil
+}
+
+func (c *ChatUsecase) GetChatID(ctx context.Context, request *wsmodel.Message) (int64, error) {
+	tx := c.db.WithContext(ctx).Begin()
+	defer tx.Rollback()
+
+	user := []string{request.From, request.To}
+	chat := new(entity.Chat)
+
+	if _ = c.chatRepository.FindFromSenderReceiver(tx, chat, user); chat.ID != 0{
+		return chat.ID, nil
+	}
+
+	chatID, err := c.newChat(ctx, request)
+	if err != nil || chatID == 0 {
+		c.log.WithField("error", err).Error("Failure in Database!")
+		return 0, err
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		c.log.WithError(err).Error("Failed Session Commit")
+		return 0, err
+	}
+
+	return chatID, nil
+
+	 
+}
+
+
+
+func (c *ChatUsecase) newChat(ctx context.Context, request *wsmodel.Message) (int64, error) {
+	tx := c.db.WithContext(ctx).Begin()
+	defer tx.Rollback()
+
+	newChat := &entity.Chat{
+		Name: "",
+		Type: "private",
+		User1ID: request.From,
+		User2ID: request.To,
+		User: []entity.User{{ ID: request.From }, {ID: request.To}},
+	}
+
+	if err := c.chatRepository.Create(tx, newChat); err != nil {
+		c.log.WithError(err).Error("Failed To Add User")
 		return 0, rerror.ErrInternalServer
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		c.Log.Error("Failed Session Commit")
+		c.log.WithError(err).Error("Failed Session Commit")
 		return 0, rerror.ErrInternalServer
 	}
 
-	return 0, rerror.ErrConflict
+	return newChat.ID, nil
 	
 }

@@ -15,7 +15,6 @@ var (
 )
 
 func NewDatabase() *gorm.DB{
-
 	newLogger := logger.New(
 		log.New(os.Stdout, "\r\n", log.LstdFlags), // io writer
 		logger.Config{

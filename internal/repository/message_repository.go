@@ -12,9 +12,10 @@ type Message interface {
 
 type MessageRepository struct {
 	Repository[entity.Message]
+
 }
 
-func NewMessageRepository() Message {
+func NewMessageRepository() *MessageRepository {
 	return &MessageRepository{}
 }
 

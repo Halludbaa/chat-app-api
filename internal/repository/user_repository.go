@@ -23,3 +23,7 @@ func (r *UserRepository) CountByEmail(db *gorm.DB, email string) (int64, error) 
 	err := db.Model(new(entity.User)).Where("email = ?", email).Count(&total).Error
 	return total, err
 }
+
+func (r *UserRepository) UserWithChat(db *gorm.DB, entity *entity.User) (error) {
+	return db.Where("id = ?", entity.ID).Preload("Chat").Take(entity).Error
+}

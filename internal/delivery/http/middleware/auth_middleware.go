@@ -14,6 +14,8 @@ func NewAuth(userUseCase *usecase.UserUsecase) gin.HandlerFunc {
 
 		if token == "" {
 			ctx.JSON(401, rerror.ErrUnauthorized)
+
+			ctx.Abort()
 			return
 		}
 		

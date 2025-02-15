@@ -26,7 +26,7 @@ type UseCaseList struct {
 type Hub struct {
 	HubFunc
 	log 		*logrus.Logger
-	uc			*UseCaseList
+	UC			*UseCaseList
 	Clients 	map[string]*Client
 	register 	chan *Client
 	unregister 	chan *Client
@@ -37,7 +37,7 @@ type Hub struct {
 
 func NewHub(log *logrus.Logger, uc *UseCaseList) *Hub {
 	return &Hub{
-		uc: uc,
+		UC: uc,
 		broadcast: make(chan *wsmodel.Message),
 		Clients: make(map[string]*Client),
 		register: make(chan *Client),
@@ -59,8 +59,10 @@ func (hub *Hub) Run() {
 			delete(hub.Clients, client.ID)
 			hub.mu.Unlock()
 		case msg := <-hub.broadcast:
-			hub.StoreMessage(msg)
-			hub.SendMessage(msg)
+			sMsg, err := hub.StoreMessage(msg)
+			if err == nil {
+				hub.SendMessage(sMsg)
+			}
 		}
 	}
 }
@@ -106,22 +108,27 @@ func (hub *Hub) SendMessage(msg *wsmodel.Message) {
 	
 }
 
-func (hub *Hub) StoreMessage(msg *wsmodel.Message) {
+func (hub *Hub) StoreMessage(msg *wsmodel.Message) (*wsmodel.Message, error) {
 	hub.log.Debug("Stored")
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	if msg.ChatID == 0 {
-		// Call NewChat Usecase of Chat
-		// Return newChat{ID}
-		hub.uc.ChatUsecase.NewChat(ctx, msg)
-		
-		
-		
-		// msg.ChatID = newChat.ID
-		hub.log.Debug("No Chat Exist!")
+		chatID, err := hub.UC.ChatUsecase.GetChatID(ctx, msg)
+		if err != nil || chatID == 0 {
+			return nil, err
+		}
+
+		msg.ChatID = chatID
 	}
 	
 	// Call Store Usecase of Messages
-	hub.uc.MessageUsecase.Store(ctx, msg)
+	newMsg, err := hub.UC.MessageUsecase.Store(ctx, msg)
+	if  err != nil {
+		hub.log.WithError(err).Error("Failure in Database")
+		return nil, err
+	}
+	newMsg.Type = msg.Type
+
+	return newMsg, nil
 }

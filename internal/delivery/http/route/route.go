@@ -13,6 +13,8 @@ type  RouteConfig struct {
 	App 				*gin.Engine
 	AuthController 		*controller.AuthController
 	AuthMiddleware		gin.HandlerFunc
+	ChatController  	*controller.ChatController
+	UserController 		*controller.UserController
 	Hub 				*websockets.Hub
 	WebsocketHandler 	*controller.WsController
 }
@@ -54,6 +56,15 @@ func (c *RouteConfig) SetupForTest() {
 	})
 }
 
+func (c *RouteConfig) SetupChatRoute(parent *gin.RouterGroup) {
+	chat := parent.Group("/chat")
+	chat.Use(c.AuthMiddleware)
+	{
+		chat.GET("/:chat_id", c.ChatController.GetChatMessage)
+		chat.GET("/", c.UserController.GetUserChat)
+	}
+}
+
 func (c *RouteConfig) SetupGuestRoute() {
 	v1 := c.App.Group("/api")
 	{
@@ -61,6 +72,7 @@ func (c *RouteConfig) SetupGuestRoute() {
 		v1.POST("/_login", c.AuthController.Login)
 		v1.POST("/_refresh", c.AuthController.Refresh)
 		c.SetupAuthRoute(v1)
+		c.SetupChatRoute(v1)
 	}
 
 	
